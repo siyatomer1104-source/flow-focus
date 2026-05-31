@@ -294,33 +294,95 @@ function handleAdd(){
 function openPopup(){popup.style.display="block";content.classList.add("blur");}
 function closePopup(){popup.style.display="none";content.classList.remove("blur");}
 
-function addTask(){
-  let div=document.createElement("div");
-  div.className="task";
+function addTask() {
+  let task = taskInput.value;
+  let date = dateInput.value;
+  let time = timeInput.value;
 
-  div.innerHTML=`
-  <div class="task-left">
-    <input type="checkbox">
-    <div>
-      <p><b>${taskInput.value}</b></p>
-      <p style="color:green;">${dateInput.value} ${timeInput.value}</p>
+  if(task === "") return;
+
+  let deadline = new Date(`${date}T${time}`);
+
+  let div = document.createElement("div");
+  div.className = "task";
+
+  div.innerHTML = `
+    <div class="task-left">
+      <input type="checkbox" onchange="toggleDone(this)">
+      <div>
+        <p><strong>${task}</strong></p>
+        <p style="color:green;">${date} ${time}</p>
+        <p class="countdown" style="color:#7ea6f7;"></p>
+      </div>
     </div>
-  </div>
-  <div>
-    <span class="edit" onclick="editTask(this)">✏</span>
-    <span class="delete" onclick="this.parentElement.parentElement.remove()">🗑</span>
-  </div>
+
+    <div>
+      <span onclick="editTask(this)" style="cursor:pointer;">✏</span>
+      <span class="delete" onclick="this.parentElement.parentElement.remove()">🗑</span>
+    </div>
   `;
 
   taskList.appendChild(div);
+
+  updateCountdown(div, deadline);
+
+  setInterval(() => {
+    updateCountdown(div, deadline);
+  }, 1000);
+
   closePopup();
+
+  taskInput.value="";
+  dateInput.value="";
+  timeInput.value="";
 }
 
-function editTask(el){
-  let task = el.closest(".task");
-  let text = task.querySelector("b").innerText;
-  let newText = prompt("Edit task:", text);
-  if(newText) task.querySelector("b").innerText = newText;
+function updateCountdown(taskDiv, deadline){
+
+  let countdownEl = taskDiv.querySelector(".countdown");
+
+  let now = new Date();
+
+  let diff = deadline - now;
+
+  if(diff <= 0){
+    countdownEl.innerHTML = "⚠ Task overdue";
+    countdownEl.style.color = "red";
+    return;
+  }
+
+  let days = Math.floor(diff / (1000*60*60*24));
+
+  let hours = Math.floor(
+    (diff % (1000*60*60*24))
+    /
+    (1000*60*60)
+  );
+
+  let mins = Math.floor(
+    (diff % (1000*60*60))
+    /
+    (1000*60)
+  );
+
+  countdownEl.innerHTML =
+  `⏳ ${days}d ${hours}h ${mins}m left`;
+}
+
+function editTask(btn){
+
+  let taskBox =
+  btn.parentElement.parentElement; 
+
+  let title =
+  taskBox.querySelector("strong");
+
+  let newTitle =
+  prompt("Edit task:", title.textContent);
+
+  if(newTitle){
+    title.textContent = newTitle;
+  }
 }
 
 /* FLASH FIXED */
@@ -453,30 +515,4 @@ function deleteEvent(i){events.splice(i,1);renderSchedule();}
 let studyTime=1500,breakTime=300,currentTime=1500,timer=null;
 
 function setMode(m){currentTime=(m==="study"?studyTime:breakTime);updateDisplay();}
-function updateDisplay(){
-  let m=Math.floor(currentTime/60),s=currentTime%60;
-  timerDisplay.innerText=`${m}:${s<10?"0":""}${s}`;
-}
-function startTimer(){
-  if(timer) return;
-  timer=setInterval(()=>{currentTime--;if(currentTime<=0){clearInterval(timer);}updateDisplay();},1000);
-}
-function pauseTimer(){clearInterval(timer);timer=null;}
-function resetTimer(){pauseTimer();setMode("study");}
-function updateTimes(){
-  studyTime=studyInput.value*60;
-  breakTime=breakInput.value*60;
-  setMode("study");
-}
-
-/* ANALYTICS */
-function showAnalytics(){
-  analytics.innerHTML=`
-  <p>Study sessions tracked</p>
-  <p>Most used: TO-DO</p>
-  <p>Tip: Stay consistent</p>`;
-}
-</script>
-
-</body>
-</html>
+functio
